@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "age-groups-api"
-version = "0.3.0"
+version = "0.4.0"
 description = ""
 authors = ["Guilherme Ferreira <guilherme.xgfx@gmail.com>"]
 readme = "README.md"

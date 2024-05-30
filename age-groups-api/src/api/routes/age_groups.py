@@ -54,3 +54,19 @@ def delete_age_group(name: str) -> AgeGroup:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred while deleting the age group. Please try again later.",
         )
+
+
+@router.get("/", status_code=status.HTTP_200_OK)
+def read_age_groups() -> list[AgeGroup]:
+    """Send a GET request to this resource to retrieve all age groups."""
+
+    try:
+        response = age_groups_table.scan()
+        return response["Items"]
+    except Exception as exc:
+        logger.error("Failed retrieve age groups: %s", exc)
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while retrieving age groups. Please try again later.",
+        )
