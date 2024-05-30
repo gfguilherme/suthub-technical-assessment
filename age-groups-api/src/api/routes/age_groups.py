@@ -1,8 +1,9 @@
 import logging
 
 from botocore.exceptions import ClientError
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
+from src.api.deps import get_current_user
 from src.db import age_groups_table
 from src.models import AgeGroup
 
@@ -11,7 +12,9 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/", status_code=status.HTTP_201_CREATED, dependencies=[Depends(get_current_user)]
+)
 def create_age_group(age_group: AgeGroup) -> AgeGroup:
     """Send a POST request to this resource to create a new age group."""
 
@@ -27,7 +30,9 @@ def create_age_group(age_group: AgeGroup) -> AgeGroup:
         )
 
 
-@router.delete("/{name}", status_code=status.HTTP_200_OK)
+@router.delete(
+    "/{name}", status_code=status.HTTP_200_OK, dependencies=[Depends(get_current_user)]
+)
 def delete_age_group(name: str) -> AgeGroup:
     """Send a DELETE request to this resource to delete an age group."""
 
@@ -56,7 +61,9 @@ def delete_age_group(name: str) -> AgeGroup:
         )
 
 
-@router.get("/", status_code=status.HTTP_200_OK)
+@router.get(
+    "/", status_code=status.HTTP_200_OK, dependencies=[Depends(get_current_user)]
+)
 def read_age_groups() -> list[AgeGroup]:
     """Send a GET request to this resource to retrieve all age groups."""
 
