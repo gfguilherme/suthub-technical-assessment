@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: Age Groups API
+
+Resources:
+  AgeGroupsTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: 'AgeGroups'
+      AttributeDefinitions:
+        - AttributeName: 'name'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'name'
+          KeyType: 'HASH'
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  AgeGroupsFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: src/main.lambda_handler
+      Runtime: python3.11
+      CodeUri: .
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref AgeGroupsTable
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AgeGroupsTable
+      Events:
+        RootPath:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+        Swagger:
+          Type: Api
+          Properties:
+            Path: /docs
+            Method: get
+        Openapi:
+          Type: Api
+          Properties:
+            Path: /openapi.json
+            Method: get
+        ProxyPath:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  AgeGroupsAPI:
+    Description: "API Gateway endpoint URL for Age Groups API"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+
+  AgeGroupsTable:
+    Description: The ARN of the AgeGroups DynamoDB table
+    Value: !GetAtt AgeGroupsTable.Arn
+    Export:
+      Name: AgeGroupsTable-Export
