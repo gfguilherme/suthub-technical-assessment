@@ -65,6 +65,7 @@ As default, the credentials are:
 - Password: `try2crack`
 
 **Enrollment API:**
+
 - Username: `user`
 - Password: `strongpassword`
 
@@ -73,11 +74,21 @@ As default, the credentials are:
 - `POST /api/v1/age_groups/`: Create a new age group.
 - `DELETE /api/v1/age_groups/{name}`: Delete an age group by name.
 - `GET /api/v1/age_groups/`: List all age groups.
+- `GET /docs`: Swagger documentation for the API.
+
+**API Documentation:**
+
+![Age Groups API](docs/age-groups-docs.png)
 
 ### Enrollment API
 
 - `POST /api/v1/enrollments/`: Request enrollment.
 - `GET /api/v1/enrollments/{CPF}`: Check enrollment status by CPF (unique identifier).
+- `GET /docs`: Swagger documentation for the API.
+
+**API Documentation:**
+
+![Enrollment API](docs/enrollment-docs.png)
 
 ## Technologies Used
 
