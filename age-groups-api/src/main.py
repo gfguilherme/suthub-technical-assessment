@@ -7,7 +7,7 @@ from src.api.main import api_router
 
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
+app = FastAPI(root_path="/Prod/")
 lambda_handler = Mangum(app)
 
 
