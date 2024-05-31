@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: Enrollment API
+
+Resources:
+  EnrollmentTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: 'Enrollment'
+      AttributeDefinitions:
+        - AttributeName: 'CPF'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'CPF'
+          KeyType: 'HASH'
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  EnrollmentQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: EnrollmentQueue
+
+  EnrollmentProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: enrollment_processor.lambda_handler
+      Runtime: python3.11
+      CodeUri: .
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EnrollmentTable
+      Environment:
+        Variables:
+          QUEUE_URL: !Ref EnrollmentQueue
+          TABLE_NAME: !Ref EnrollmentTable
+      Events:
+        EnrollmentQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt EnrollmentQueue.Arn
+            BatchSize: 1
+
+  EnrollmentFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: src/main.lambda_handler
+      Runtime: python3.11
+      CodeUri: .
+      Environment:
+        Variables:
+          ENROLLMENT_TABLE: !Ref EnrollmentTable
+          AGE_GROUPS_TABLE: !ImportValue AgeGroupsTable-Export
+          QUEUE_URL: !Ref EnrollmentQueue
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - DynamoDBCrudPolicy:
+            TableName: !ImportValue AgeGroupsTable-Export
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EnrollmentTable
+        - Statement:
+            Effect: Allow
+            Action:
+              - sqs:SendMessage
+              - dynamodb:Scan
+            Resource: 
+              - !GetAtt EnrollmentQueue.Arn
+              - !ImportValue AgeGroupsTable-Export
+      Events:
+        RootPath:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+        Swagger:
+          Type: Api
+          Properties:
+            Path: /docs
+            Method: get
+        Openapi:
+          Type: Api
+          Properties:
+            Path: /openapi.json
+            Method: get
+        ProxyPath:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  EnrollmentAPI:
+    Description: "API Gateway endpoint URL for Enrollment API"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
